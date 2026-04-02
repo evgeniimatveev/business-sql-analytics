@@ -146,7 +146,7 @@ pip install -r requirements.txt
 ---
 
 ## 📜 License  
-This project is distributed under the **MIT License**. Feel free to use the code! 🚀  
+This project is distributed under the **MIT License**. Feel free to use the code! 🚀 
 
 ---
 

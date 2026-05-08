@@ -16,7 +16,9 @@ End-to-end business analytics pipeline built on a simulated retail dataset: **cu
 
 **26+ SQL queries** organized from data validation → aggregations → transaction analysis → multi-table joins, with Python automation for data generation and Tableau dashboards for stakeholder reporting.
 
-**Pipeline:** `PostgreSQL → SQL Analytics → Python Export → Tableau + Excel`
+ **Pipeline:** `PostgreSQL → SQL Analytics → Python Export → Tableau + Excel`
+
+ **Dataset:** 2,314 customers · 5,000 transactions · $2.58M revenue · 14 months
 
 ---
 

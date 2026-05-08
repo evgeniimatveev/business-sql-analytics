@@ -20,15 +20,15 @@ End-to-end business analytics pipeline built on a simulated retail dataset: **cu
 
 ---
 
-## Business Questions & Findings
+  ## Business Questions & Findings
 
-| Question | Approach |
-|----------|----------|
-| Who are the top 10 customers by revenue? | Multi-table JOIN + ORDER BY total spend |
-| Which payment methods dominate transactions? | GROUP BY payment_method with % share |
-| What is the monthly transaction volume trend? | DATE_TRUNC + LAG window function |
-| Which product categories drive most sales? | JOIN products × transactions + aggregation |
-| How many customers are returning vs one-time? | Subquery filtering order count > 1 |
+  | Question | Finding |
+  |----------|---------|
+  | Who are the top 10 customers by revenue? | Top customer: **$5,133** total spend · avg customer **$1,115** |
+  | Which payment methods dominate? | Across **5,000 transactions**, avg ticket **$515.85** |
+  | What is the monthly revenue trend? | Peak month: **$240,920** (446 orders) · low: **$79,918** |
+  | Which product categories drive most sales? | **$2,579,272** total revenue across all categories |
+  | Returning vs one-time customers? | **59.8% returning** (1,384 of 2,314) vs 40.2% one-time |
 
 ---
 

@@ -1,161 +1,175 @@
- # MLOps SQL Project 🚀  
+# Business SQL Analytics — PostgreSQL · Python · Tableau · Excel
 
-![SQL](https://img.shields.io/badge/SQL-PostgreSQL-blue) ![Tableau](https://img.shields.io/badge/Tableau-Visualization-orange) ![Excel](https://img.shields.io/badge/Excel-Reports-green) ![Python](https://img.shields.io/badge/Python-Automation-yellow) ![Status](https://img.shields.io/badge/Status-Active-brightgreen) ![License](https://img.shields.io/badge/License-MIT-lightgrey)  
+![SQL](https://img.shields.io/badge/SQL-PostgreSQL-blue?logo=postgresql&logoColor=white)
+![Python](https://img.shields.io/badge/Python-Automation-yellow?logo=python&logoColor=black)
+![Tableau](https://img.shields.io/badge/Tableau-Visualization-orange?logo=tableau&logoColor=white)
+![Excel](https://img.shields.io/badge/Excel-Reports-green?logo=microsoftexcel&logoColor=white)
+![CI/CD](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-black?logo=githubactions&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 
 ---
 
-## Overview  
+## What This Project Does
 
-This repository provides a **structured MLOps project** that integrates **SQL, Python, Tableau**, and **Excel-based analysis**.  
-It includes **SQL data queries**, **Python scripts for automation**, and **Tableau dashboards for visualization**.
+End-to-end business analytics pipeline built on a simulated retail dataset: **customers, orders, products, and transactions** across 4 normalized tables.
+
+**26+ SQL queries** organized from data validation → aggregations → transaction analysis → multi-table joins, with Python automation for data generation and Tableau dashboards for stakeholder reporting.
+
+**Pipeline:** `PostgreSQL → SQL Analytics → Python Export → Tableau + Excel`
 
 ---
 
-## Project Structure  
+## Business Questions & Findings
 
-```plaintext
+| Question | Approach |
+|----------|----------|
+| Who are the top 10 customers by revenue? | Multi-table JOIN + ORDER BY total spend |
+| Which payment methods dominate transactions? | GROUP BY payment_method with % share |
+| What is the monthly transaction volume trend? | DATE_TRUNC + LAG window function |
+| Which product categories drive most sales? | JOIN products × transactions + aggregation |
+| How many customers are returning vs one-time? | Subquery filtering order count > 1 |
+
+---
+
+## SQL — Advanced Patterns
+
+### Window Function: Customer Revenue Ranking
+
+```sql
+SELECT
+    c.customer_name,
+    SUM(t.amount)                                               AS total_spent,
+    RANK() OVER (ORDER BY SUM(t.amount) DESC)                  AS revenue_rank,
+    ROUND(SUM(t.amount) / SUM(SUM(t.amount)) OVER () * 100, 1) AS pct_of_total
+FROM customers c
+JOIN transactions t ON c.customer_id = t.customer_id
+GROUP BY c.customer_name
+ORDER BY revenue_rank;
+```
+
+### CTE: Monthly Revenue with Month-over-Month Change
+
+```sql
+WITH monthly_revenue AS (
+    SELECT
+        DATE_TRUNC('month', transaction_date) AS month,
+        SUM(amount)                           AS revenue,
+        COUNT(DISTINCT customer_id)           AS active_customers
+    FROM transactions
+    GROUP BY 1
+)
+SELECT
+    month,
+    revenue,
+    active_customers,
+    ROUND(revenue - LAG(revenue) OVER (ORDER BY month), 0) AS mom_change
+FROM monthly_revenue
+ORDER BY month;
+```
+
+### Multi-Table JOIN: Full Customer Order Profile
+
+```sql
+SELECT
+    c.customer_name,
+    COUNT(DISTINCT o.order_id)  AS total_orders,
+    SUM(t.amount)               AS total_spent,
+    ROUND(AVG(t.amount), 2)    AS avg_transaction,
+    MAX(t.transaction_date)     AS last_purchase
+FROM customers c
+JOIN orders o       ON c.customer_id = o.customer_id
+JOIN transactions t ON o.order_id    = t.order_id
+GROUP BY c.customer_name
+ORDER BY total_spent DESC
+LIMIT 10;
+```
+
+---
+
+## Project Structure
+
+```
 mlops_sql_project/
-├── env/  # Environment Configuration
-│   ├── .env                # Environment variables (e.g. DB credentials)
-│   ├── db_config.yaml      # Database configuration (host, port, user, etc.)
-│   ├── logging_config.yaml # Logging configuration (for Python logs)
-│   └── settings.json       # General project settings
-│
-├── Excel/  # Excel-based Analysis (exported reports or manual exploration)
-│   ├── transactions_overview.xlsx 
-│   ├── sales_summary.xlsx  
-│   ├── customer_behavior.xlsx  
-│
-├── Tableau/  # Tableau Dashboards & Reports
-│   ├── sales_dashboard.twb         # KPI dashboard for sales
-│   ├── transaction_analysis.twb    # Visualization of transaction flow
-│   ├── customer_insights.twb       # Customer segmentation & behavior
-│
-├── python/  # Data Generation & Automation
-│   ├── generate_customers.py           # Generates random customer data
-│   ├── generate_orders.py              # Generates random orders
-│   ├── generate_products.py            # Generates product catalog
-│   ├── generate_transactions.py        # Simulates transaction history
-│   ├── transactions_overview.py        # Generates Excel summary
-│   ├── sales_summary.py                # KPIs for Tableau dashboard
-│   ├── customer_behavior.py            # Behavior analysis summary
-│
-├── sql/  # Structured SQL Queries
-│   ├── ddl/  # Schema definition (Create, Constraints)
-│   │   ├── 01_create_database.sql
-│   │   ├── 02_create_tables.sql
-│   │   ├── 03_constraints.sql
-│   │
-│   ├── dml/  # Data Manipulation (Insert, Update, Delete)
-│   │   ├── 00_truncate_tables.sql
-│   │
-│   ├── dql/  # Queries & Analysis
-│   │   ├── a_checks/  # Data Validation & Structure
-│   │   │   ├── 01_check_constraints.sql
-│   │   │   ├── 02_check_all_foreign_keys.sql
-│   │   │   ├── 03_check_table_dependencies.sql
-│   │   │   ├── 04_check_indexes_primary_keys.sql
-│   │   │   ├── 05_check_privileges.sql
-│   │   │   └── 06_null_value_check.sql         # Check for NULLs in key columns
-│   │   │
-│   │   ├── b_aggregations/  # Aggregation & Statistical Analysis
-│   │   │   ├── 06_table_counts.sql
-│   │   │   ├── 07_check_total_records.sql
-│   │   │   ├── 08_counts_the_number_of_products.sql
-│   │   │   ├── 09_min_max_and_average_price.sql
-│   │   │   ├── 10_stock_statistics.sql
-│   │   │   └── 11_sales_by_category.sql
-│   │   │
-│   │   ├── c_transactions/  # Orders & Transactions
-│   │   │   ├── 11_top_expensive_orders.sql
-│   │   │   ├── 12_orders_by_month.sql
-│   │   │   ├── 13_random_orders_check.sql
-│   │   │   ├── 14_customers_orders_join.sql
-│   │   │   ├── 15_transaction_amount_summary.sql
-│   │   │   ├── 16_transactions_by_payment.sql
-│   │   │   ├── 17_daily_transaction_volume.sql
-│   │   │   ├── 18_top_10_biggest_transactions.sql
-│   │   │   ├── 19_top_10_biggest_customers.sql
-│   │   │   └── 20_avg_transaction_per_customer.sql
-│   │   │
-│   │   ├── d_joins/  # Multi-table Joins & Relationships
-│   │   │   ├── 20_join_customers_orders_products.sql  
-│   │   │   ├── 21_join_orders_transactions.sql  
-│   │   │   ├── 22_top_10_customers_by_spent.sql 
-│   │   │   ├── 23_avg_order_value.sql 
-│   │   │   ├── 24_returning_customers.sql
-│   │   │   ├── 25_bonus.sql 
-│   │   │   ├── 26_cleaned_bonus.sql 
-│
-├── environment.yaml  # Conda environment setup
-├── requirements.txt  # pip packages (for production or alt install)
-├── .gitignore        # Git exclusions
-├── LICENSE           # Project License (e.g., MIT)
-├── README.md         # Project Documentation
+├── sql/
+│   ├── ddl/                    # schema, tables, constraints
+│   ├── dml/                    # data inserts & resets
+│   └── dql/
+│       ├── a_checks/           # data validation (nulls, FK, indexes)
+│       ├── b_aggregations/     # counts, min/max, category stats
+│       ├── c_transactions/     # order & payment analysis
+│       └── d_joins/            # multi-table joins, top customers
+├── python/
+│   ├── generate_customers.py
+│   ├── generate_orders.py
+│   ├── generate_products.py
+│   ├── generate_transactions.py
+│   ├── sales_summary.py
+│   └── customer_behavior.py
+├── Tableau/
+│   ├── sales_dashboard.twb
+│   ├── transaction_analysis.twb
+│   └── customer_insights.twb
+├── excel/
+│   ├── sales_summary.xlsx
+│   ├── transactions_overview.xlsx
+│   └── customer_behavior.xlsx
+└── env/                        # DB config, logging, settings
 ```
-
-## Features
-
-✅ **SQL-Powered Analytics** with structured queries and joins.  
-✅ **Excel + Tableau** for reporting and visualization.  
-✅ **Python Automation** for data generation and preprocessing.  
-✅ **Scalable Architecture** for BI & Data Analysis.  
 
 ---
 
-## Tech Stack  
+## Architecture
 
-- **PostgreSQL** – SQL-based data storage & queries  
-- **Tableau** – Interactive dashboards and reporting  
-- **Excel** – Static reports and aggregated insights  
-- **Python** – Data automation and preprocessing  
-- **GitHub Actions** – CI/CD for automation  
+```
+PostgreSQL (4 tables: customers, orders, products, transactions)
+    └── SQL layer: DDL → DML → DQL (26+ queries)
+            └── Python automation (data generation + export)
+                    ├── Tableau dashboards (sales, transactions, customers)
+                    └── Excel reports (summary exports)
+```
 
 ---
 
-##  Setup & Installation  
-
-### 1️⃣ Clone the repository  
+## How to Run
 
 ```bash
-git clone https://github.com/your-username/mlops_sql_project.git
-cd mlops_sql_project
-```
-
-
-
-2️⃣ Create a virtual environment (Optional)
-```bash
+# 1. Clone and set up environment
+git clone https://github.com/evgeniimatveev/business-sql-analytics.git
+cd business-sql-analytics
 conda env create -f environment.yaml
 conda activate mlops_env
+
+# 2. Configure DB credentials
+cp env/.env.example env/.env
+
+# 3. Generate synthetic data
+python python/generate_customers.py
+python python/generate_orders.py
+python python/generate_products.py
+python python/generate_transactions.py
+
+# 4. Run SQL analytics
+# Open sql/dql/ queries in DBeaver or psql
 ```
-```bash
-python -m venv venv
-source venv/bin/activate  # On macOS/Linux
-venv\Scripts\activate  # On Windows
-pip install -r requirements.txt
-```
-
----
-##  Future Plans
-✅ Advanced SQL optimization
-✅ Improved Tableau dashboards
-✅ CI/CD for SQL workflow automation
-
 
 ---
 
-## 📜 License  
-This project is distributed under the **MIT License**. Feel free to use the code! 🚀 
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Database | PostgreSQL |
+| Analytics | SQL (CTEs, Window Functions, Multi-table JOINs) |
+| Automation | Python (Faker, pandas, psycopg2) |
+| Visualization | Tableau |
+| Reporting | Excel |
+| CI/CD | GitHub Actions |
 
 ---
 
-## 📢 Stay Connected!  
-💻 **GitHub Repository:** [Evgenii Matveev](https://github.com/evgeniimatveev)  
-🌐 **Portfolio:** [Data Science Portfolio](https://www.datascienceportfol.io/evgeniimatveevusa)  
-📌 **LinkedIn:** [Evgenii Matveev](https://www.linkedin.com/in/evgenii-matveev-510926276/)  
+## Connect
 
-
----
-
-🔥 **If you like this project, don't forget to star ⭐ the repository!** 🔥
+- GitHub: [evgeniimatveev](https://github.com/evgeniimatveev)
+- Portfolio: [datascienceportfol.io/evgeniimatveevusa](https://www.datascienceportfol.io/evgeniimatveevusa)
+- LinkedIn: [Evgenii Matveev](https://www.linkedin.com/in/evgenii-matveev-510926276/)

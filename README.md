@@ -5,7 +5,6 @@
 ![Tableau](https://img.shields.io/badge/Tableau-Visualization-orange?logo=tableau&logoColor=white)
 ![Excel](https://img.shields.io/badge/Excel-Reports-green?logo=microsoftexcel&logoColor=white)
 ![CI/CD](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-black?logo=githubactions&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-lightgrey)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 
 ---

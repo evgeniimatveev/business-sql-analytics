@@ -4,8 +4,6 @@ name: SQL run (manual)
 # Builds the whole project on a real PostgreSQL 16: tables, generated data, report scripts, all analysis queries.
 on:
   workflow_dispatch:
-  push:
-    branches: [security/remove-venv-and-password]   # TEMPORARY: to test before merge
 
 permissions:
   contents: read

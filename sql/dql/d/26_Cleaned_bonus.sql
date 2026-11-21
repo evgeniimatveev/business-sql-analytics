@@ -1,15 +1,16 @@
 -- 26_Cleaned_bonus
+-- (fixed: PostgreSQL cannot COALESCE an integer id with the text 'No ...'; the ids are cast to text)
 SELECT 
     c.customer_id,
     c.name AS customer_name,
-    COALESCE(o.order_id, 'No Order') AS order_id,
+    COALESCE(o.order_id::text, 'No Order') AS order_id,
     COALESCE(o.order_date, '1900-01-01') AS order_date,
     COALESCE(o.status, 'No Order') AS order_status,
-    COALESCE(t.transaction_id, 'No Transaction') AS transaction_id,
+    COALESCE(t.transaction_id::text, 'No Transaction') AS transaction_id,
     COALESCE(t.payment_method, 'No Payment') AS payment_method,
     COALESCE(t.transaction_date, '1900-01-01') AS transaction_date,
     COALESCE(t.amount, 0) AS transaction_amount,
-    COALESCE(p.product_id, 'No Product') AS product_id,
+    COALESCE(p.product_id::text, 'No Product') AS product_id,
     COALESCE(p.name, 'No Product') AS product_name,
     COALESCE(p.category, 'No Category') AS product_category,
     COALESCE(p.price, 0) AS product_price,

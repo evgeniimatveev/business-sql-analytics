@@ -1,0 +1,60 @@
+name: SQL run (manual)
+
+# Manual only: click "Run workflow" in the Actions tab. No push / PR / schedule triggers.
+# Builds the whole project on a real PostgreSQL 16: tables, generated data, report scripts, all analysis queries.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci_only_password
+          POSTGRES_DB: business_analysis
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: ci_only_password
+      PGDATABASE: business_analysis
+      DB_PASSWORD: ci_only_password
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - name: Tables and constraints (the database itself is created by the service)
+        run: |
+          psql -v ON_ERROR_STOP=1 -q -f sql/ddl/02_create_tables.sql
+          psql -v ON_ERROR_STOP=1 -q -f sql/ddl/03_constraints.sql
+      - name: Generate the data (5,000 rows per table)
+        run: |
+          python python/generate_customers.py
+          python python/generate_orders.py
+          python python/generate_products.py
+          python python/generate_transactions.py
+      - name: Report scripts run (Excel exports are not committed)
+        run: |
+          python python/sales_summary.py
+          python python/customer_behavior.py
+          python python/transactions_overview.py
+      - name: All analysis queries run without errors
+        run: |
+          n=0
+          for f in $(ls sql/dql/*/*.sql | sort); do
+            echo "== $f"; psql -v ON_ERROR_STOP=1 -q -f "$f" > /dev/null; n=$((n+1))
+          done
+          echo "$n queries ran"
+      - name: The generated data is consistent (see Job Summary)
+        run: python .github/scripts/check_db.py

@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads DB_PASSWORD from .env (see .env.example)
+
 import pandas as pd
 import psycopg2
 import openpyxl
@@ -6,7 +11,7 @@ import openpyxl
 conn = psycopg2.connect(
     dbname="business_analysis",
     user="postgres",
-    password="31031987",
+    password=os.environ["DB_PASSWORD"],
     host="localhost",
     port="5432"
 )
@@ -47,10 +52,10 @@ grand_total = pd.DataFrame({
 df = pd.concat([df, grand_total], ignore_index=True)
 
 # Save the DataFrame to Excel
-df.to_excel("./Excel/sales_summary.xlsx", index=False, engine="openpyxl")
+df.to_excel("./excel/sales_summary.xlsx", index=False, engine="openpyxl")
 
 # Auto-adjust column width
-wb = openpyxl.load_workbook("./Excel/sales_summary.xlsx")
+wb = openpyxl.load_workbook("./excel/sales_summary.xlsx")
 ws = wb.active
 
 for col in ws.columns:
@@ -64,7 +69,7 @@ for col in ws.columns:
             pass
     ws.column_dimensions[col_letter].width = max_length + 2  # Adjust width
 
-wb.save("./Excel/sales_summary.xlsx")
+wb.save("./excel/sales_summary.xlsx")
 wb.close()
 
 print("✅ Sales summary report updated successfully!")

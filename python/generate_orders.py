@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads DB_PASSWORD from .env (see .env.example)
+
 import psycopg2
 import psycopg2.extras
 import pandas as pd
@@ -8,7 +13,7 @@ from tqdm import tqdm
 # Database connection settings
 DB_NAME = "business_analysis"
 DB_USER = "postgres"
-DB_PASSWORD = "31031987"
+DB_PASSWORD = os.environ["DB_PASSWORD"]
 DB_HOST = "localhost"
 DB_PORT = "5432"
 

@@ -7,3 +7,4 @@ dependencies:
   - tqdm
   - numpy
   - openpyxl
+  - python-dotenv

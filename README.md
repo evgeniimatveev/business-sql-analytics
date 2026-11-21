@@ -91,31 +91,35 @@ LIMIT 10;
 ## Project Structure
 
 ```
-mlops_sql_project/
+business-sql-analytics/
 ├── sql/
-│   ├── ddl/                    # schema, tables, constraints
-│   ├── dml/                    # data inserts & resets
+│   ├── ddl/                    # database, tables, constraints
+│   ├── dml/                    # data resets
 │   └── dql/
-│       ├── a_checks/           # data validation (nulls, FK, indexes)
-│       ├── b_aggregations/     # counts, min/max, category stats
-│       ├── c_transactions/     # order & payment analysis
-│       └── d_joins/            # multi-table joins, top customers
+│       ├── a/                  # data validation (constraints, FK, indexes, privileges)
+│       ├── b/                  # counts, min/max/avg, stock statistics
+│       ├── c/                  # orders and transactions analysis
+│       └── d/                  # multi-table joins, top customers, bonus queries
 ├── python/
 │   ├── generate_customers.py
 │   ├── generate_orders.py
 │   ├── generate_products.py
 │   ├── generate_transactions.py
 │   ├── sales_summary.py
-│   └── customer_behavior.py
+│   ├── customer_behavior.py
+│   └── transactions_overview.py
 ├── Tableau/
-│   ├── sales_dashboard.twb
-│   ├── transaction_analysis.twb
-│   └── customer_insights.twb
+│   ├── sales_dashboard.twbx
+│   ├── transaction_analysis.twbx
+│   ├── customer_insights.twbx
+│   └── reports/                # PDF exports of the dashboards
 ├── excel/
 │   ├── sales_summary.xlsx
 │   ├── transactions_overview.xlsx
 │   └── customer_behavior.xlsx
-└── env/                        # DB config, logging, settings
+├── .env.example                # copy to .env and set DB_PASSWORD
+├── environment.yaml
+└── requirements.txt
 ```
 
 ---
@@ -141,8 +145,9 @@ cd business-sql-analytics
 conda env create -f environment.yaml
 conda activate mlops_env
 
-# 2. Configure DB credentials
-cp env/.env.example env/.env
+# 2. Configure DB credentials (the real .env is never committed)
+cp .env.example .env      # then set DB_PASSWORD in .env
+# create the database and tables first: sql/ddl/01 to 03
 
 # 3. Generate synthetic data
 python python/generate_customers.py
@@ -153,6 +158,17 @@ python python/generate_transactions.py
 # 4. Run SQL analytics
 # Open sql/dql/ queries in DBeaver or psql
 ```
+
+---
+
+## Continuous Integration
+
+| Workflow | When | What it does |
+|----------|------|--------------|
+| [`files-check.yml`](.github/workflows/files-check.yml) | every push and pull request | All 30 SQL files parse as PostgreSQL, the Python scripts compile, no secrets or virtual environments are tracked, no password is written in code, README links work |
+| [`sql-run.yml`](.github/workflows/sql-run.yml) | **manual**: Actions → *SQL run (manual)* → *Run workflow* | Starts PostgreSQL 16, creates the tables, runs the four generators (5,000 rows each) and the three report scripts, then runs **all 26 analysis queries** and checks row counts, foreign keys and constraints |
+
+> The *Dataset* figures above (2,314 customers, $2.58M revenue ...) come from one run of the generators, which are random: another run gives other numbers. Only the table sizes (5,000 rows each) are fixed.
 
 ---
 

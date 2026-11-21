@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads DB_PASSWORD from .env (see .env.example)
+
 import random
 import psycopg2
 from faker import Faker
@@ -10,7 +15,7 @@ faker = Faker()
 DB_PARAMS = {
     "dbname": "business_analysis",
     "user": "postgres",
-    "password": "31031987",
+    "password": os.environ["DB_PASSWORD"],
     "host": "localhost",
     "port": "5432"
 }

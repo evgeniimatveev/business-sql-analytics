@@ -4,3 +4,4 @@ faker
 tqdm
 numpy
 openpyxl
+python-dotenv

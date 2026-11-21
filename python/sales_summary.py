@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads DB_PASSWORD from .env (see .env.example)
+
 import pandas as pd
 import psycopg2
 import openpyxl
@@ -6,7 +11,7 @@ import openpyxl
 conn = psycopg2.connect(
     dbname="business_analysis",
     user="postgres",
-    password="31031987",
+    password=os.environ["DB_PASSWORD"],
     host="localhost",
     port="5432"
 )
